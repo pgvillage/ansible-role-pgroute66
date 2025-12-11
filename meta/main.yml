@@ -1,7 +1,9 @@
 ---
 galaxy_info:
   author: S. Mannem
-  description: CTO
+  description: |
+    PgRoute66 is a tool to manage redirection from HAProxy to PostgreSQL.
+
   company: Nibble-IT
 
   # If the issue tracker for your role is not on github, uncomment the
