@@ -66,14 +66,14 @@
   loop: "{{ pgroute66_local_packages }}"
 
 - name: Install pgroute66
-  ansible.builtin.dnf:
+  ansible.builtin.package:
     name: "/tmp/{{ item }}"
     disable_gpg_check: "true"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_local_packages }}"
 
 - name: Install pgroute66
-  ansible.builtin.dnf:
+  ansible.builtin.package:
     name: "{{ item }}"
     disable_gpg_check: "true"
     state: "{{ pgroute66_package_state }}"

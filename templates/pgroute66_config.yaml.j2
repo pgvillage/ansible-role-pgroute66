@@ -1,7 +1,7 @@
 ---
 hosts:
 {% for dbserver in  groups["postgres"] %}
-  {{ hostvars[dbserver]['ansible_default_ipv4']['address'] }}:
+  {{ hostvars[dbserver]['ansible_facts.default_ipv4']['address'] }}:
     host: {{ dbserver }}
     port: {{ postgresql_rw_port }}
     dbname: postgres
