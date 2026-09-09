@@ -1,0 +1,9 @@
+---
+
+- name: "Restart pgroute66 service"
+  become: true
+  ansible.builtin.systemd:
+    name: pgroute66.service
+    state: restarted
+    enabled: "true"
+    daemon_reload: "true"
