@@ -21,11 +21,11 @@ pgroute66_pgnodes_group: hacluster
 
 pgroute66_config:
   hosts: >-
-    {%- set hosts = [] -%}
+    {%- set hosts = {} -%}
     {%- for host in groups[pgroute66_pgnodes_group] -%}
       {%- set hv = hostvars[host] -%}
-      {%- set host_values = {"host": host, "port": pgroute66_pgport, "address": hv.ansible_facts.default_ipv4.address, "dbname": pgroute66_dbname} -%}
-      {%- set _ = hosts.append(host_values) -%}
+      {%- set host_values = {"host": host, "port": pgroute66_pgport, "dbname": pgroute66_dbname} -%}
+      {%- do hosts.update({host: host_values}) -%}
     {%- endfor -%}
     {{ hosts }}
   loglevel: "{{ pgroute66_loglevel }}"
