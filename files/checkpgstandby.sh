@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # $1 = Virtual Service IP (VIP)
 # $2 = Virtual Service Port (VPT)
@@ -7,5 +8,6 @@
 # $5 = Check Source IP
 
 export PATH=/usr/local/sbin:/sbin:/bin:/usr/sbin:/usr/bin
+CLUSTERNAME="${HAPROXY_PROXY_NAME%%-*}"
 
-curl http://localhost:8080/v1/standbys 2>/dev/null | grep -q "$3"
+curl "http://localhost:8080/v1/standbys?group=$CLUSTERNAME" 2>/dev/null | grep -q "${HAPROXY_SERVER_NAME}"

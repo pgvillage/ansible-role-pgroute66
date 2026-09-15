@@ -5,6 +5,73 @@
     dest: "/etc/systemd/system/pgroute66.service"
     mode: "0600"
 
+- name: "Create pgroute66_osgroup"
+  ansible.builtin.group:
+    name: "{{ pgroute66_osgroup }}"
+    system: "true"
+    state: present
+
+- name: "Create pgroute66_user"
+  ansible.builtin.user:
+    name: "{{ pgroute66_osuser }}"
+    group: "{{ pgroute66_osgroup }}"
+    create_home: "true"
+    system: "true"
+    state: present
+
+- name: Get user info for {{ pgroute66_osuser }}
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ pgroute66_osuser }}"
+    split: ":"
+
+- name: "~/.postgresql dir"
+  ansible.builtin.file:
+    path: "{{ getent_passwd[pgroute66_osuser][4] }}/.postgresql"
+    state: directory
+    owner: "{{ pgroute66_osuser }}"
+    group: "{{ pgroute66_osgroup }}"
+    mode: "0750"
+
+- name: "Deploy certs to ~/.postgresql/"
+  ansible.builtin.copy:
+    dest: "{{ getent_passwd[pgroute66_osuser][4] }}/.postgresql/{{ item.name }}"
+    owner: "{{ pgroute66_osuser }}"
+    group: "{{ pgroute66_osgroup }}"
+    mode: "{{ item.mode }}"
+    content: "{{ item.content }}"
+  diff: false
+  loop:
+    - name: root.crt
+      mode: "0640"
+      content: "{{ certs.client.postgres }}"
+    - name: "postgresql.crt"
+      mode: "0640"
+      content: "{{ certs.client.pgroute66 }}"
+    - name: "postgresql.key"
+      mode: "0600"
+      content: "{{ private_keys.client.pgroute66 }}"
+  loop_control:
+    label: "{{ item.name }}"
+  when: pgroute66_cert_managed
+
+- name: Create deploydir and configdir
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ pgroute66_scriptdir }}"
+    - "{{ pgroute66_configdir }}"
+
+- name: Deploy pgroute66 scripts
+  ansible.builtin.template:
+    src: "files/{{ item }}"
+    dest: "{{ pgroute66_scriptdir }}/{{ item }}"
+    mode: "0755"
+  loop:
+    - checkpgprimary.sh
+    - checkpgstandby.sh
 - name: Deploy config file
   ansible.builtin.template:
     src: "templates/pgroute66_config.yaml.j2"
@@ -12,12 +79,3 @@
     owner: "root"
     group: "root"
     mode: "0644"
-
-# Restart kan wel met pgroute66
-- name: "Start pgroute66 service"
-  become: true
-  ansible.builtin.systemd:
-    name: pgroute66.service
-    state: restarted
-    enabled: "true"
-    daemon_reload: "true"

@@ -1,7 +1,8 @@
 ---
 # pgroute66
-pgroute66_cert_managed: true
+pgroute66_cert_managed: false
 pgroute66_deploydir: /usr/local/bin
+pgroute66_scriptdir: /opt/pgroute66
 pgroute66_configdir: /etc/pgroute66
 pgroute66_osuser: pgroute66
 pgroute66_osgroup: pgroute66
@@ -10,3 +11,25 @@ pgroute66_package_state: present
 pgroute66_packages:
   - pgroute66
 pgroute66_local_packages: []
+
+pgroute66_bind: 127.0.0.1
+pgroute66_port: 8080
+pgroute66_loglevel: info
+pgroute66_verbosity: 3
+pgroute66_pgport: 5432
+pgroute66_dbname: postgres
+pgroute66_pgnodes_group: hacluster
+
+pgroute66_config:
+  hosts: >-
+    {%- set hosts = {} -%}
+    {%- for host in groups[pgroute66_pgnodes_group] -%}
+      {%- set hv = hostvars[host] -%}
+      {%- set host_values = {"host": host, "port": pgroute66_pgport, "dbname": pgroute66_dbname} -%}
+      {%- do hosts.update({host: host_values}) -%}
+    {%- endfor -%}
+    {{ hosts }}
+  loglevel: "{{ pgroute66_loglevel }}"
+  verbosity: "{{ pgroute66_verbosity }}"
+  bind: "{{ pgroute66_bind }}"
+  port: "{{ pgroute66_port }}"
