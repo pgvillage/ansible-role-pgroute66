@@ -17,4 +17,3 @@
     name: "{{ item }}"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_packages }}"
-
