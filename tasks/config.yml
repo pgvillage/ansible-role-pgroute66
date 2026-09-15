@@ -61,13 +61,13 @@
     state: directory
     mode: "0755"
   loop:
-    - "{{ pgroute66_deploydir }}"
+    - "{{ pgroute66_scriptdir }}"
     - "{{ pgroute66_configdir }}"
 
 - name: Deploy pgroute66 scripts
   ansible.builtin.template:
     src: "files/{{ item }}"
-    dest: "{{ pgroute66_deploydir }}/{{ item }}"
+    dest: "{{ pgroute66_scriptdir }}/{{ item }}"
     mode: "0755"
   loop:
     - checkpgprimary.sh

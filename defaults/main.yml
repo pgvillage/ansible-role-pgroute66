@@ -2,6 +2,7 @@
 # pgroute66
 pgroute66_cert_managed: false
 pgroute66_deploydir: /usr/local/bin
+pgroute66_scriptdir: /opt/pgroute66
 pgroute66_configdir: /etc/pgroute66
 pgroute66_osuser: pgroute66
 pgroute66_osgroup: pgroute66
