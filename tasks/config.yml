@@ -72,6 +72,7 @@
   loop:
     - checkpgprimary.sh
     - checkpgstandby.sh
+
 - name: Deploy config file
   ansible.builtin.template:
     src: "templates/pgroute66_config.yaml.j2"
