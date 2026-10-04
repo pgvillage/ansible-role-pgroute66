@@ -1,24 +1,47 @@
 ---
 # pgroute66
+
+# When true, deploy client certificates to ~/.postgresql of pgroute66_osuser.
+# Requires `certs.client.postgres` (root CA), `certs.client.pgroute66` and
+# `private_keys.client.pgroute66` to be defined (e.g. by a certificate role).
 pgroute66_cert_managed: false
+# Directory where the pgroute66 binary is installed (used by the systemd unit).
 pgroute66_deploydir: /usr/local/bin
+# Directory where the HAProxy check scripts (checkpgprimary.sh / checkpgstandby.sh) are deployed.
 pgroute66_scriptdir: /opt/pgroute66
+# Directory where the pgroute66 config file (config.yaml) is deployed.
 pgroute66_configdir: /etc/pgroute66
+# OS user created for pgroute66; owns the client certificates in ~/.postgresql.
 pgroute66_osuser: pgroute66
+# Primary OS group of pgroute66_osuser.
 pgroute66_osgroup: pgroute66
+# State passed to the package module for all packages (e.g. present, latest, absent).
 pgroute66_package_state: present
+# Packages to install from the configured package repositories.
 pgroute66_packages:
   - pgroute66
+# Local package files (e.g. rpm's from the role files dir) to copy to /tmp and install.
 pgroute66_local_packages: []
 
+# Address the pgroute66 API listens on.
 pgroute66_bind: 127.0.0.1
+# Port the pgroute66 API listens on.
+# Note: the HAProxy check scripts expect pgroute66 on localhost:8080.
 pgroute66_port: 8080
+# Log level of pgroute66 (e.g. debug, info, warn, error).
 pgroute66_loglevel: info
+# Verbosity of pgroute66 logging.
 pgroute66_verbosity: 3
+# Port PostgreSQL listens on, on all nodes in pgroute66_pgnodes_group.
 pgroute66_pgport: 5432
+# Database pgroute66 connects to, to check the role of each PostgreSQL node.
 pgroute66_dbname: postgres
+# Inventory group containing the PostgreSQL nodes pgroute66 should monitor.
 pgroute66_pgnodes_group: hacluster
 
+# Full pgroute66 configuration, rendered as yaml into pgroute66_configdir/config.yaml.
+# By default it is derived from the variables above, with one entry per host in pgroute66_pgnodes_group.
+# Override completely for full control over the configuration.
 pgroute66_config:
   hosts: >-
     {%- set hosts = {} -%}
