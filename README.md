@@ -1,4 +1,4 @@
-PgFga
+PgRoute66
 =========
 
 PgRoute66 is a tool to manage redirection from HAProxy to PostgreSQL.
