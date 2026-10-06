@@ -10,7 +10,7 @@ Defaults are defined in [defaults/main.yml](../defaults/main.yml).
 | `pgroute66_packages` | `["pgroute66"]` | Packages to install from the configured package repositories. |
 | `pgroute66_local_packages` | `[]` | Local package files (e.g. rpm's from the role `files` dir) that are copied to `/tmp` and installed from there. |
 | `pgroute66_package_state` | `present` | State passed to the package module for all packages (e.g. `present`, `latest`, `absent`). |
-| `pgroute66_deploydir` | `/usr/local/bin` | Directory where the pgroute66 binary is installed. Used in the systemd unit to start pgroute66. |
+| `pgroute66_deploydir` | `/usr/local/bin` | Directory where systemd expects the pgroute66 binary. Used in the systemd unit to start pgroute66. |
 
 ## Directories, users and certificates
 
@@ -68,4 +68,4 @@ pgroute66_config:
 ```
 
 Override this variable completely when full control over the configuration is required.
-Note that the individual variables above have no effect when `pgroute66_config` is overridden.
+Note that the individual variables above (under `pgroute66_config`) have no effect when `pgroute66_config` is overridden.
