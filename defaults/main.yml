@@ -6,7 +6,7 @@
 # `private_keys.client.pgroute66` to be defined (e.g. by a certificate role).
 pgroute66_cert_managed: false
 # Directory where the pgroute66 binary is installed (used by the systemd unit).
-pgroute66_deploydir: /usr/local/bin
+pgroute66_deploydir: /usr/bin
 # Directory where the HAProxy check scripts (checkpgprimary.sh / checkpgstandby.sh) are deployed.
 pgroute66_scriptdir: /opt/pgroute66
 # Directory where the pgroute66 config file (config.yaml) is deployed.
