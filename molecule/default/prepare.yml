@@ -1,0 +1,56 @@
+---
+# pgroute66 tells which PostgreSQL node is the primary. The smallest real
+# setup is the PostgreSQL server from the distribution, listening on the
+# host's name, where the pgroute66 OS user logs in as pgroute66 (trust on the
+# container network).
+- name: Prepare
+  hosts: all
+  vars:
+    pgvillage_repo: https://repo.pgvillage.org/yum/v0.3.8
+  tasks:
+    - name: Add the pgvillage package repo, so the role installs pgroute66 by name
+      ansible.builtin.yum_repository:
+        name: pgvillage
+        description: pgvillage packages
+        baseurl: "{{ pgvillage_repo }}/el$releasever/$basearch/"
+        gpgcheck: true
+        gpgkey: https://repo.pgvillage.org/yum/pgvillage.asc
+
+    - name: Install the PostgreSQL server
+      ansible.builtin.dnf:
+        name: postgresql-server
+        state: present
+
+    - name: Initialize the PostgreSQL data directory
+      ansible.builtin.command: postgresql-setup --initdb
+      args:
+        creates: /var/lib/pgsql/data/PG_VERSION
+
+    - name: Listen on all addresses
+      ansible.builtin.lineinfile:
+        path: /var/lib/pgsql/data/postgresql.conf
+        line: listen_addresses = '*'
+
+    - name: Let pgroute66 log in from the container network
+      ansible.builtin.copy:
+        dest: /var/lib/pgsql/data/pg_hba.conf
+        content: |
+          local all all peer
+          host postgres pgroute66 samenet trust
+        owner: postgres
+        group: postgres
+        mode: "0600"
+
+    - name: Start PostgreSQL
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+        enabled: true
+
+    - name: Create the pgroute66 role
+      become: true
+      become_user: postgres
+      ansible.builtin.command: psql -c "create role pgroute66 login"
+      register: create_role
+      changed_when: create_role.rc == 0
+      failed_when: create_role.rc != 0 and 'already exists' not in create_role.stderr
