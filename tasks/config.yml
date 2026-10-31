@@ -4,6 +4,7 @@
     src: "templates/pgroute66.service.j2"
     dest: "/etc/systemd/system/pgroute66.service"
     mode: "0600"
+  notify: Restart pgroute66
 
 - name: "Create pgroute66_osgroup"
   ansible.builtin.group:
@@ -54,6 +55,7 @@
   loop_control:
     label: "{{ item.name }}"
   when: pgroute66_cert_managed
+  notify: Restart pgroute66
 
 - name: Create deploydir and configdir
   ansible.builtin.file:
@@ -80,3 +82,4 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  notify: Restart pgroute66

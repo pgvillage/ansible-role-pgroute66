@@ -1,9 +1,11 @@
 ---
 
-- name: "Restart pgroute66 service"
+# Restarted by the "Restart pgroute66" handler when the unit, config or
+# certificates change
+- name: "Start pgroute66 service"
   become: true
   ansible.builtin.systemd:
     name: pgroute66.service
-    state: restarted
+    state: started
     enabled: "true"
     daemon_reload: "true"

@@ -1,0 +1,55 @@
+---
+- name: Verify
+  hosts: all
+  vars:
+    api: http://127.0.0.1:8080/v1
+  tasks:
+    - name: Read the service states
+      ansible.builtin.service_facts:
+
+    - name: Check that pgroute66 runs and is enabled
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['pgroute66.service'].state == 'running'
+          - ansible_facts.services['pgroute66.service'].status == 'enabled'
+
+    - name: Wait until pgroute66 reports this host as the primary
+      ansible.builtin.uri:
+        url: "{{ api }}/primary"
+        return_content: true
+      register: primary
+      until: primary.content | default('') is search('"' ~ inventory_hostname ~ '"')
+      retries: 15
+      delay: 2
+
+    - name: Ask pgroute66 for the primaries and the standbys
+      ansible.builtin.uri:
+        url: "{{ api }}/{{ item }}"
+        return_content: true
+      loop: [primaries, standbys]
+      register: answers
+
+    - name: Check that this host is the only primary and that there are no standbys
+      ansible.builtin.assert:
+        that:
+          - answers.results[0].content | from_json == [inventory_hostname]
+          - answers.results[1].content | from_json | default([], true) == []
+        fail_msg: "{{ answers.results | map(attribute='content') | list }}"
+
+    # As HAProxy runs them for a backend of group default (all hosts) and server
+    # inventory_hostname
+    - name: Run the HAProxy check scripts
+      ansible.builtin.command: /opt/pgroute66/{{ item }}
+      environment:
+        HAPROXY_PROXY_NAME: default-ReadWrite-backend
+        HAPROXY_SERVER_NAME: "{{ inventory_hostname }}"
+      loop: [checkpgprimary.sh, checkpgstandby.sh]
+      register: checks
+      changed_when: false
+      failed_when: false
+
+    - name: Check that the primary check passes and the standby check fails
+      ansible.builtin.assert:
+        that:
+          - checks.results[0].rc == 0
+          - checks.results[1].rc != 0
