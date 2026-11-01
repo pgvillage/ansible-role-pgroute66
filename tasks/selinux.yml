@@ -1,0 +1,14 @@
+---
+# HAProxy runs the check scripts as external-check commands. With the default label of /opt (usr_t) haproxy_t may not
+# execute them, so label the script dir bin_t (allowed by the policy module of the pgvillage.haproxy role).
+- name: Install the SELinux management tools (for sefcontext)
+  ansible.builtin.package:
+    name: "{{ pgroute66_selinux_packages }}"
+    state: present
+
+- name: Label the check scripts as executables (bin_t)
+  community.general.sefcontext:
+    target: "{{ pgroute66_scriptdir }}(/.*)?"
+    setype: bin_t
+    state: present
+  notify: Restore the SELinux label of the check scripts
