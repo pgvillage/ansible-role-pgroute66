@@ -4,3 +4,7 @@
     name: pgroute66.service
     state: restarted
     daemon_reload: true
+
+- name: Restore the SELinux label of the check scripts
+  ansible.builtin.command: restorecon -R "{{ pgroute66_scriptdir }}"
+  changed_when: true

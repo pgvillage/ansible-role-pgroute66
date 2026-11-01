@@ -9,6 +9,10 @@ pgroute66_cert_managed: false
 pgroute66_deploydir: /usr/bin
 # Directory where the HAProxy check scripts (checkpgprimary.sh / checkpgstandby.sh) are deployed.
 pgroute66_scriptdir: /opt/pgroute66
+# Packages for managing SELinux file contexts (community.general.sefcontext), installed on hosts with SELinux enabled.
+# There the check scripts in pgroute66_scriptdir are labeled bin_t, so HAProxy may run them.
+pgroute66_selinux_packages:
+  - policycoreutils-python-utils
 # Directory where the pgroute66 config file (config.yaml) is deployed.
 pgroute66_configdir: /etc/pgroute66
 # OS user created for pgroute66; owns the client certificates in ~/.postgresql.

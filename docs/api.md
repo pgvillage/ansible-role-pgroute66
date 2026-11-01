@@ -16,7 +16,8 @@ Defaults are defined in [defaults/main.yml](../defaults/main.yml).
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `pgroute66_scriptdir` | `/opt/pgroute66` | Directory where the HAProxy check scripts (`checkpgprimary.sh` and `checkpgstandby.sh`) are deployed. |
+| `pgroute66_scriptdir` | `/opt/pgroute66` | Directory where the HAProxy check scripts (`checkpgprimary.sh` and `checkpgstandby.sh`) are deployed. On hosts with SELinux enabled it is labeled `bin_t` (persistent, `community.general.sefcontext`), so HAProxy may run the scripts. |
+| `pgroute66_selinux_packages` | `[policycoreutils-python-utils]` | Packages for managing SELinux file contexts, installed on hosts with SELinux enabled. |
 | `pgroute66_configdir` | `/etc/pgroute66` | Directory where the pgroute66 config file (`config.yaml`) is deployed. |
 | `pgroute66_osuser` | `pgroute66` | OS user created for pgroute66. Owns the client certificates in `~/.postgresql`. |
 | `pgroute66_osgroup` | `pgroute66` | Primary OS group of `pgroute66_osuser`. |
