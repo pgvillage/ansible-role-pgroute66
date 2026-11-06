@@ -1,7 +1,7 @@
 ---
 
-# Restarted by the "Restart pgroute66" handler when the unit, config or
-# certificates change
+# Restarted (one host at a time) by the "Restart pgroute66" handler when the
+# package, unit, config or certificates change
 - name: "Start pgroute66 service"
   become: true
   ansible.builtin.systemd:

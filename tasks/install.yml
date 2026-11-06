@@ -1,4 +1,6 @@
 ---
+# On an upgrade, restart pgroute66 (rolling, see handlers/main.yml): needrestart
+# leaves pgroute66.service alone, so it does not restart it on all hosts at once
 - name: Copy rpm
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -11,9 +13,11 @@
     name: "/tmp/{{ item }}"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_local_packages }}"
+  notify: Restart pgroute66
 
 - name: Install pgroute66
   ansible.builtin.package:
     name: "{{ item }}"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_packages }}"
+  notify: Restart pgroute66
