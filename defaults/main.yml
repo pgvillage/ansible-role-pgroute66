@@ -32,6 +32,10 @@ pgroute66_bind: 127.0.0.1
 # Port the pgroute66 API listens on.
 # Note: the HAProxy check scripts expect pgroute66 on localhost:8080.
 pgroute66_port: 8080
+# Seconds to wait, after a restart, until the pgroute66 API answers on
+# pgroute66_port, before restarting pgroute66 on the next host. pgroute66 is
+# restarted (one host at a time) when its package, unit, config or certificates change.
+pgroute66_restart_wait_timeout: 60
 # Log level of pgroute66 (e.g. debug, info, warn, error).
 pgroute66_loglevel: info
 # Verbosity of pgroute66 logging.

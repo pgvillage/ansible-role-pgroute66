@@ -37,8 +37,18 @@ When `pgroute66_cert_managed` is `true`, the following variables must be defined
 |----------|---------|-------------|
 | `pgroute66_bind` | `127.0.0.1` | Address the pgroute66 API listens on. |
 | `pgroute66_port` | `8080` | Port the pgroute66 API listens on. **Note:** the HAProxy check scripts expect pgroute66 on `localhost:8080`. |
+| `pgroute66_restart_wait_timeout` | `60` | Seconds to wait, after a restart, until the pgroute66 API answers on `pgroute66_port`, before restarting pgroute66 on the next host (see [Restarts](#restarts)). |
 | `pgroute66_loglevel` | `info` | Log level of pgroute66 (e.g. `debug`, `info`, `warn`, `error`). |
 | `pgroute66_verbosity` | `3` | Verbosity of pgroute66 logging. |
+
+### Restarts
+
+The role restarts pgroute66 when its package (`pgroute66_packages` or `pgroute66_local_packages`) is installed or
+upgraded, or when the systemd unit (e.g. a changed `pgroute66_deploydir`, like `/usr/local/bin` to `/usr/bin`), the
+config or the client certificates change. Restarts are rolling: one host at a time, and the role waits until the
+pgroute66 API answers again (up to `pgroute66_restart_wait_timeout` seconds) before it restarts pgroute66 on the next
+host, so HAProxy on the other hosts can still ask pgroute66 for the primary. On Ubuntu, exclude `pgroute66.service`
+from needrestart, so it does not restart pgroute66 on all hosts at once after an upgrade.
 
 ## PostgreSQL nodes
 
