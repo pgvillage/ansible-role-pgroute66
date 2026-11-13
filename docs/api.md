@@ -45,10 +45,16 @@ When `pgroute66_cert_managed` is `true`, the following variables must be defined
 
 The role restarts pgroute66 when its package (`pgroute66_packages` or `pgroute66_local_packages`) is installed or
 upgraded, or when the systemd unit (e.g. a changed `pgroute66_deploydir`, like `/usr/local/bin` to `/usr/bin`), the
-config or the client certificates change. Restarts are rolling: one host at a time, and the role waits until the
+config or the client certificates change. Packages are usually upgraded outside this role (e.g. by the linux role with
+`linux_package_state: latest`, or by unattended-upgrades), and then pgroute66 keeps running the old binary. So the role
+also restarts pgroute66 when `<pgroute66_deploydir>/pgroute66` was replaced (its ctime) after `pgroute66.service`
+started; this task only reports `changed` when a restart is needed. Restarts are rolling: one host at a time, and the role waits until the
 pgroute66 API answers again (up to `pgroute66_restart_wait_timeout` seconds) before it restarts pgroute66 on the next
 host, so HAProxy on the other hosts can still ask pgroute66 for the primary. On Ubuntu, exclude `pgroute66.service`
 from needrestart, so it does not restart pgroute66 on all hosts at once after an upgrade.
+
+Each restarted host uses its own `pgroute66_bind`, `pgroute66_port` and `pgroute66_restart_wait_timeout` (also when
+they are set as play or role vars): a notified host stores them in a fact before the restarts start.
 
 ## PostgreSQL nodes
 
