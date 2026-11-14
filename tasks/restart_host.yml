@@ -1,9 +1,9 @@
 ---
 # Included from the "Restart pgroute66" handler once per host, with:
 #   pgroute66_restart_host: host to restart pgroute66 on (delegate_to)
-# The handler runs once for all hosts, so the variables of the restarted host
-# are read from hostvars (inventory and facts), falling back to the role defaults
-# (which are not in hostvars).
+# The handler runs once for all hosts, so the settings of the restarted host
+# are read from its _pgroute66_restart fact (bind, port, wait_timeout), which
+# the host stored itself in the handler.
 
 - name: "Restart pgroute66 on {{ pgroute66_restart_host }}"
   ansible.builtin.systemd:
@@ -15,15 +15,17 @@
 # Connect on the loopback address when pgroute66 listens on all addresses
 - name: "Wait until the pgroute66 API answers on {{ pgroute66_restart_host }}"
   ansible.builtin.wait_for:
-    host: "{{ {'': '127.0.0.1', '0.0.0.0': '127.0.0.1', '::': '::1'}.get(_pgroute66_bind, _pgroute66_bind) }}"
-    port: "{{ hostvars[pgroute66_restart_host].pgroute66_port | default(pgroute66_port) }}"
-    timeout: "{{ hostvars[pgroute66_restart_host].pgroute66_restart_wait_timeout | default(pgroute66_restart_wait_timeout) }}"
+    host: >-
+      {{ {'': '127.0.0.1', '0.0.0.0': '127.0.0.1', '::': '::1'}.get(_pgroute66_restart_plan.bind,
+         _pgroute66_restart_plan.bind) }}
+    port: "{{ _pgroute66_restart_plan.port }}"
+    timeout: "{{ _pgroute66_restart_plan.wait_timeout }}"
   vars:
-    _pgroute66_bind: "{{ (hostvars[pgroute66_restart_host].pgroute66_bind | default(pgroute66_bind)) | default('', true) | string | trim }}"
+    _pgroute66_restart_plan: "{{ hostvars[pgroute66_restart_host]._pgroute66_restart }}"
   delegate_to: "{{ pgroute66_restart_host }}"
 
 - name: "Mark pgroute66 as restarted on {{ pgroute66_restart_host }}"
   ansible.builtin.set_fact:
-    _pgroute66_restart_needed: false
+    _pgroute66_restart: {}
   delegate_to: "{{ pgroute66_restart_host }}"
   delegate_facts: true

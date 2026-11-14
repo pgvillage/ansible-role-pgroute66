@@ -1,23 +1,24 @@
 ---
 # Restarts are rolling: one host at a time, waiting until the pgroute66 API
 # answers again before going on to the next host. A handler runs on all
-# notified hosts at once, so the notified hosts first mark themselves, and then
-# one run (run_once) restarts the marked hosts in turn (delegate_to), see
-# tasks/restart_host.yml.
+# notified hosts at once, so the notified hosts first store what their restart
+# needs in a fact (play vars and role defaults are not in hostvars), and then
+# one run (run_once) restarts the hosts with a stored fact in turn
+# (delegate_to), see tasks/restart_host.yml.
 - name: Restart pgroute66
   ansible.builtin.set_fact:
-    _pgroute66_restart_needed: true
+    _pgroute66_restart:
+      bind: "{{ pgroute66_bind | default('', true) | string | trim }}"
+      port: "{{ pgroute66_port }}"
+      wait_timeout: "{{ pgroute66_restart_wait_timeout }}"
 
 - name: Restart pgroute66 on one host at a time
   ansible.builtin.include_tasks: restart_host.yml
   run_once: true
-  loop: "{{ ansible_play_batch | select('in', _pgroute66_restart_hosts) | list }}"
+  loop: "{{ ansible_play_batch }}"
   loop_control:
     loop_var: pgroute66_restart_host
-  vars:
-    _pgroute66_restart_hosts: >-
-      {{ hostvars | dict2items | selectattr('value._pgroute66_restart_needed', 'defined')
-         | selectattr('value._pgroute66_restart_needed') | map(attribute='key') | list }}
+  when: hostvars[pgroute66_restart_host]._pgroute66_restart | default({}) | length > 0
   listen: Restart pgroute66
 
 - name: Restore the SELinux label of the check scripts

@@ -53,3 +53,50 @@
         that:
           - checks.results[0].rc == 0
           - checks.results[1].rc != 0
+
+# Simulate a package upgrade outside the role: replace the binary (new ctime)
+# after pgroute66 started. Running the role again must then restart pgroute66
+# (rolling over both hosts), and only then.
+- name: Verify the restart after an upgraded binary
+  hosts: all
+  vars:
+    api: http://127.0.0.1:8080/v1
+  tasks:
+    - name: Read the main PID before the upgrade
+      ansible.builtin.systemd_service:
+        name: pgroute66
+      register: before
+
+    - name: Wait a second, as the start time and ctime have a resolution of 1s
+      ansible.builtin.pause:
+        seconds: 2
+
+    - name: Replace the pgroute66 binary, as a package upgrade does
+      ansible.builtin.shell: cp -p /usr/bin/pgroute66 /usr/bin/pgroute66.new && mv /usr/bin/pgroute66.new /usr/bin/pgroute66
+      changed_when: true
+
+    - name: Run the role again
+      ansible.builtin.include_role:
+        name: pgvillage.pgroute66
+
+    - name: Run the handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Read the main PID after the restart
+      ansible.builtin.systemd_service:
+        name: pgroute66
+      register: after
+
+    - name: Check that pgroute66 was restarted
+      ansible.builtin.assert:
+        that: after.status.MainPID != before.status.MainPID
+        fail_msg: "PID before: {{ before.status.MainPID }}, after: {{ after.status.MainPID }}"
+
+    - name: Check that the restarted pgroute66 reports this host as the primary
+      ansible.builtin.uri:
+        url: "{{ api }}/primary"
+        return_content: true
+      register: primary
+      until: primary.content | default('') is search('"' ~ inventory_hostname ~ '"')
+      retries: 15
+      delay: 2
