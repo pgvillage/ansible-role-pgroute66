@@ -100,3 +100,35 @@
       until: primary.content | default('') is search('"' ~ inventory_hostname ~ '"')
       retries: 15
       delay: 2
+
+# An old package installed pgroute66 in /usr/local/bin, while the unit points to
+# pgroute66_deploydir (/usr/bin). Simulate that by moving the binary away: the
+# install tasks must fail with a clear message.
+- name: Verify the failure when the pgroute66 binary is missing
+  hosts: all
+  tasks:
+    - name: Move the pgroute66 binary away, as if an old package put it in /usr/local/bin
+      ansible.builtin.command: mv /usr/bin/pgroute66 /usr/local/bin/pgroute66
+      changed_when: true
+
+    - name: Run the install tasks with the binary missing
+      block:
+        - name: Run the install tasks of the role
+          ansible.builtin.include_role:
+            name: pgvillage.pgroute66
+            tasks_from: install.yml
+
+        - name: The role should have failed
+          ansible.builtin.fail:
+            msg: The role did not fail on the missing pgroute66 binary
+      rescue:
+        - name: Check the failure message
+          ansible.builtin.assert:
+            that:
+              - "'/usr/bin/pgroute66 does not exist' in ansible_failed_result.msg"
+              - "'pgroute66_package_state: latest' in ansible_failed_result.msg"
+            fail_msg: "{{ ansible_failed_result.msg }}"
+      always:
+        - name: Put the pgroute66 binary back
+          ansible.builtin.command: mv /usr/local/bin/pgroute66 /usr/bin/pgroute66
+          changed_when: true

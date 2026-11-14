@@ -13,6 +13,7 @@
     name: "/tmp/{{ item }}"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_local_packages }}"
+  register: pgroute66_local_package_installed
   notify: Restart pgroute66
 
 - name: Install pgroute66
@@ -20,4 +21,26 @@
     name: "{{ item }}"
     state: "{{ pgroute66_package_state }}"
   loop: "{{ pgroute66_packages }}"
+  register: pgroute66_package_installed
   notify: Restart pgroute66
+
+# Older pgvillage packages installed pgroute66 in /usr/local/bin, newer ones in
+# /usr/bin. With `present` an old package stays, and the unit would point to a
+# binary that is not there: fail before the config and unit change.
+- name: Check that the pgroute66 binary exists
+  ansible.builtin.stat:
+    path: "{{ pgroute66_deploydir }}/pgroute66"
+  register: pgroute66_binary
+
+- name: Fail when the pgroute66 binary is missing
+  ansible.builtin.fail:
+    msg: >-
+      {{ pgroute66_deploydir }}/pgroute66 does not exist after installing the
+      pgroute66 packages (state {{ pgroute66_package_state }}).
+      Older pgvillage packages install pgroute66 in /usr/local/bin.
+      Set pgroute66_package_state: latest (once) to move to the new package,
+      or set pgroute66_deploydir: /usr/local/bin to keep the old build.
+  when:
+    - not pgroute66_binary.stat.exists
+    # In check mode a package that is not installed yet has no binary
+    - not (ansible_check_mode and (pgroute66_package_installed is changed or pgroute66_local_package_installed is changed))
