@@ -5,10 +5,8 @@
   ansible.builtin.include_tasks: "config.yml"
 - name: Label the check scripts for SELinux
   ansible.builtin.include_tasks: "selinux.yml"
-  when:
-    - ansible_facts.os_family is defined
-    - ansible_facts.os_family == 'RedHat'
-    - ansible_facts.selinux.status is defined
-    - ansible_facts.selinux.status != 'disabled'
+  # Any OS with SELinux enabled (EL, openSUSE Leap 16), as in the pgvillage.haproxy role. Not on "Missing selinux
+  # Python library" (e.g. Ubuntu without the bindings), so it doesn't try to label without SELinux.
+  when: (ansible_facts.selinux.status | default('unknown')) == 'enabled'
 - name: Start
   ansible.builtin.include_tasks: "start.yml"
