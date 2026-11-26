@@ -6,9 +6,7 @@
 - name: Label the check scripts for SELinux
   ansible.builtin.include_tasks: "selinux.yml"
   when:
-    - ansible_facts.os_family is defined
-    - ansible_facts.os_family == 'RedHat'
-    - ansible_facts.selinux.status is defined
-    - ansible_facts.selinux.status != 'disabled'
+    - ansible_facts.os_family != 'Debian'
+    - (ansible_facts.selinux.status | default('unknown')) == 'enabled'
 - name: Start
   ansible.builtin.include_tasks: "start.yml"
